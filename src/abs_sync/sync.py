@@ -28,7 +28,9 @@ def sync_audiobooks(
 
     # Step 2: Filter for finished items after the specified datetime
     finished_items = [
-        progress for progress in user.mediaProgress if progress.isFinished and progress.finishedAt and progress.finishedAt > finished_since
+        progress
+        for progress in user.mediaProgress
+        if progress.isFinished and progress.finishedAt and progress.finishedAt > finished_since
     ]
 
     logger.info(f"Found {len(finished_items)} finished items to sync")
@@ -84,7 +86,9 @@ def _sync_single_item(
         else:
             local_name = author_name
 
-        author_id = grist_client.get_or_create_author(name_primary=primary_name, name_local=local_name, name_variants=None)
+        author_id = grist_client.get_or_create_author(
+            name_primary=primary_name, name_local=local_name, name_variants=None
+        )
 
         if author_id:
             author_ids.append(author_id)

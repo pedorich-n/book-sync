@@ -42,15 +42,16 @@ def main():
 
     finished_since = datetime(2026, 1, 4, 0, 0, 0, tzinfo=timezone.utc)  # TODO: Replace with real value
 
-    with AudiobookshelfClient(config.abs) as abs_client, GristClient(config.grist) as grist_client:
-        try:
-            logger.info("Starting synchronization...")
-            sync_audiobooks(
-                abs_client=abs_client,
-                abs_user_id=config.abs.user_id,
-                grist_client=grist_client,
-                finished_since=finished_since,
-            )
-        except Exception as e:
-            logger.error(f"Synchronization failed: {e}", exc_info=True)
-            sys.exit(1)
+    with AudiobookshelfClient(config.abs) as abs_client:
+        with GristClient(config.grist) as grist_client:
+            try:
+                logger.info("Starting synchronization...")
+                sync_audiobooks(
+                    abs_client=abs_client,
+                    abs_user_id=config.abs.user_id,
+                    grist_client=grist_client,
+                    finished_since=finished_since,
+                )
+            except Exception as e:
+                logger.error(f"Synchronization failed: {e}", exc_info=True)
+                sys.exit(1)

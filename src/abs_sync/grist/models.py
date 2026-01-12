@@ -17,12 +17,18 @@ class GristLanguageBase(BaseModel):
     Name: NonEmptyStr
 
 
+class GristRecord(BaseModel):
+    """Base model for Grist records with an ID."""
+
+    id: GristId
+
+
 class GristLanguageInput(GristLanguageBase):
     pass
 
 
-class GristLanguageRecord(GristLanguageBase):
-    id: GristId
+class GristLanguageRecord(GristRecord, GristLanguageBase):
+    pass
 
 
 class GristAuthorBase(BaseModel):
@@ -37,6 +43,10 @@ class GristAuthorInput(GristAuthorBase):
     pass
 
 
+class GristAuthorRecord(GristRecord, GristAuthorBase):
+    pass
+
+
 class GristSeriesBase(BaseModel):
     """Base model for Grist series records."""
 
@@ -47,12 +57,8 @@ class GristSeriesInput(GristSeriesBase):
     pass
 
 
-class GristSeriesRecord(GristSeriesBase):
-    id: GristId
-
-
-class GristAuthorRecord(GristAuthorBase):
-    id: GristId
+class GristSeriesRecord(GristRecord, GristSeriesBase):
+    pass
 
 
 class GristBookBase(BaseModel):
@@ -71,15 +77,15 @@ class GristBookBase(BaseModel):
 class GristBookInput(GristBookBase):
     @field_serializer("Authors")
     def serialize_Authors(self, authors: NonEmptyList[GristId]) -> NonEmptyList[str | GristId]:
+        # Grist encodes "Reference List" fields as an array with first element "L"
         return ["L"] + [author for author in authors]
 
 
-class GristBookRecord(GristBookBase):
-    id: GristId
-
+class GristBookRecord(GristRecord, GristBookBase):
     @field_validator("Authors", mode="before")
     @classmethod
     def parse_grist_ids(cls, v):
+        # Grist encodes "Reference List" fields as an array with first element "L"
         if isinstance(v, list) and len(v) > 0 and v[0] == "L":
             return v[1:]
         return v
@@ -108,5 +114,5 @@ class GristReadInput(GristReadBase):
         return int(datetime.combine(value, time(), tzinfo=timezone.utc).timestamp())
 
 
-class GristReadRecord(GristReadBase):
-    id: GristId
+class GristReadRecord(GristRecord, GristReadBase):
+    pass

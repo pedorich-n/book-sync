@@ -10,6 +10,8 @@ from .models import AbsApiLibraryItem, AbsApiUser, AbsLibraryItemId, AbsUserId
 
 
 class AudiobookshelfClient:
+    """Client for interacting with the Audiobookshelf API."""
+
     def __init__(self, config: AbsConfig):
         self.logger = logging.getLogger(__name__)
         self.base_url = config.base_url
@@ -33,14 +35,32 @@ class AudiobookshelfClient:
         return response.json()
 
     def get_user(self, user_id: AbsUserId) -> Optional[AbsApiUser]:
+        """
+        Retrieve user information including media progress.
+
+        Args:
+            user_id: The user's ID
+
+        Returns:
+            User data if successful, None otherwise
+        """
         try:
             data = self._api_call(f"users/{user_id}")
             return AbsApiUser.model_validate(data)
         except Exception as e:
-            self.logger.error(f"Failed to get current user: {e}", exc_info=True)
+            self.logger.error(f"Failed to get user {user_id}: {e}", exc_info=True)
             return None
 
     def get_library_item(self, library_item_id: AbsLibraryItemId) -> Optional[AbsApiLibraryItem]:
+        """
+        Retrieve detailed information about a library item.
+
+        Args:
+            library_item_id: The library item's ID
+
+        Returns:
+            Library item data if successful, None otherwise
+        """
         try:
             data = self._api_call(f"items/{library_item_id}")
             return AbsApiLibraryItem.model_validate(data)

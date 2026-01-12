@@ -28,8 +28,15 @@ abs-sync = "src.abs_sync.main:main"
 
 [tool.ruff]
 target-version = "py313"
-line-length = 140
+line-length = 120
 
 [tool.ruff.lint]
 # Enable isort
 extend-select = ["I"]
+
+[tool.mypy]
+python_version = "3.13"
+
+[[tool.mypy.overrides]]
+module = "pygrister.*"
+ignore_missing_imports = true
