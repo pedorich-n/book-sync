@@ -4,6 +4,8 @@ from typing import Any, Dict, List, Optional
 
 from pygrister.api import GristApi  # type: ignore[import-untyped]
 
+from src.abs_sync.config import GristConfig
+
 from .models import (
     GristAuthorInput,
     GristAuthorRecord,
@@ -21,14 +23,22 @@ from .models import (
 
 
 class GristClient:
-    def __init__(self, api: GristApi):
+    def __init__(self, config: GristConfig):
         self.logger = logging.getLogger(__name__)
-        self.api = api
+        self.api = GristApi(config=config.get_pygrister_config())
+
         self.languages_table_id = "Languages"
         self.authors_table_id = "Authors"
         self.series_table_id = "Series"
         self.books_table_id = "Books"
         self.reads_table_id = "Reads"
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.api.close_session()
+        return False
 
     def get_or_create_language(self, name: str) -> Optional[GristId]:
         try:

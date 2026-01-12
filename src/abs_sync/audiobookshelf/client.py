@@ -2,19 +2,19 @@ import logging
 from typing import Dict, Optional
 from urllib.parse import urljoin
 
-from pydantic import HttpUrl, SecretStr
 from requests import Session
+
+from src.abs_sync.config import AbsConfig
 
 from .models import AbsApiLibraryItem, AbsApiUser, AbsLibraryItemId, AbsUserId
 
 
 class AudiobookshelfClient:
-    def __init__(self, token: SecretStr, base_url: HttpUrl):
+    def __init__(self, config: AbsConfig):
         self.logger = logging.getLogger(__name__)
-        self.token = token
-        self.base_url = base_url
+        self.base_url = config.base_url
         self.session = Session()
-        self.session.headers.update({"Authorization": f"Bearer {self.token.get_secret_value()}"})
+        self.session.headers.update({"Authorization": f"Bearer {config.token.get_secret_value()}"})
 
     def __enter__(self):
         return self
