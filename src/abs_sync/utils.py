@@ -15,3 +15,10 @@ type OptionalNonEmptyStr = Annotated[Optional[str], BeforeValidator(_empty_str_t
 type NonEmptyStr = Annotated[str, MinLen(1)]
 
 type NonEmptyList[T] = Annotated[List[T], MinLen(1)]
+
+
+def is_latin_alphabet(text: NonEmptyStr) -> bool:
+    """
+    Returns True if there are at least one Latin alphabet characters
+    """
+    return any(c.isalpha() and c.isascii() for c in text)
