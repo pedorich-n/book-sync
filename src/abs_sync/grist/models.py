@@ -1,29 +1,14 @@
-from datetime import date
+from datetime import date, datetime, time, timezone
 from enum import Enum
-from typing import Annotated, Any, List, NewType, Optional
+from typing import Annotated, NewType, Optional
 
 from annotated_types import IsDigit
-from pydantic import BaseModel, PositiveInt
+from pydantic import BaseModel, PositiveInt, field_serializer, field_validator
 
 from src.abs_sync.utils import NonEmptyList, NonEmptyStr, OptionalNonEmptyStr
 
 GristId = NewType("GristId", int)
 """Type alias for Grist record IDs. To distinguish from other integers"""
-
-
-class GristApiIdResponse(BaseModel):
-    id: GristId
-
-
-class GristApiResponse[X](BaseModel):
-    records: List[X]
-
-
-class GristUpsertRecord(BaseModel):
-    """Base model for Grist upsert records with require/fields structure."""
-
-    require: dict[str, Any]
-    fields: dict[str, Any]
 
 
 class GristLanguageBase(BaseModel):
@@ -33,11 +18,7 @@ class GristLanguageBase(BaseModel):
 
 
 class GristLanguageInput(GristLanguageBase):
-    def to_upsert_record(self) -> GristUpsertRecord:
-        return GristUpsertRecord(
-            require={"Name": self.Name},
-            fields={},
-        )
+    pass
 
 
 class GristLanguageRecord(GristLanguageBase):
@@ -47,20 +28,13 @@ class GristLanguageRecord(GristLanguageBase):
 class GristAuthorBase(BaseModel):
     """Base model for Grist author records."""
 
-    Name_Primary: NonEmptyStr
+    Name_Primary: OptionalNonEmptyStr
     Name_Local: OptionalNonEmptyStr
     Name_Variants: OptionalNonEmptyStr
 
 
 class GristAuthorInput(GristAuthorBase):
-    def to_upsert_record(self) -> GristUpsertRecord:
-        return GristUpsertRecord(
-            require={"Name_Primary": self.Name_Primary},
-            fields={
-                "Name_Local": self.Name_Local,
-                "Name_Variants": self.Name_Variants,
-            },
-        )
+    pass
 
 
 class GristSeriesBase(BaseModel):
@@ -70,11 +44,7 @@ class GristSeriesBase(BaseModel):
 
 
 class GristSeriesInput(GristSeriesBase):
-    def to_upsert_record(self) -> GristUpsertRecord:
-        return GristUpsertRecord(
-            require={"Name": self.Name},
-            fields={},
-        )
+    pass
 
 
 class GristSeriesRecord(GristSeriesBase):
@@ -99,22 +69,20 @@ class GristBookBase(BaseModel):
 
 
 class GristBookInput(GristBookBase):
-    def to_upsert_record(self) -> GristUpsertRecord:
-        return GristUpsertRecord(
-            require={"Title": self.Title, "Authors": self.Authors},
-            fields={
-                "Title_Original": self.Title_Original,
-                "ISBN": self.ISBN,
-                "ASIN": self.ASIN,
-                "Language_Original": self.Language_Original,
-                "Series": self.Series,
-                "Series_Order": self.Series_Order,
-            },
-        )
+    @field_serializer("Authors")
+    def serialize_Authors(self, authors: NonEmptyList[GristId]) -> NonEmptyList[str | GristId]:
+        return ["L"] + [author for author in authors]
 
 
 class GristBookRecord(GristBookBase):
     id: GristId
+
+    @field_validator("Authors", mode="before")
+    @classmethod
+    def parse_grist_ids(cls, v):
+        if isinstance(v, list) and len(v) > 0 and v[0] == "L":
+            return v[1:] 
+        return v
 
 
 class GristBookType(str, Enum):
@@ -130,20 +98,16 @@ class GristReadBase(BaseModel):
     Date_Read: date
     Language_Read: Optional[GristId]
     Rating: Optional[Annotated[str, IsDigit]]  # Rating is represented as a dropdown field in Grist
-    Type: GristBookType
+    Book_Type: GristBookType
     Note: OptionalNonEmptyStr
 
+
 class GristReadInput(GristReadBase):
-    def to_upsert_record(self) -> GristUpsertRecord:
-        return GristUpsertRecord(
-            require={"Book": self.Book, "Date_Read": self.Date_Read},
-            fields={
-                "Language_Read": self.Language_Read,
-                "Rating": self.Rating,
-                "Type": self.Type,
-                "Note": self.Note,
-            },
-        )
+
+    @field_serializer("Date_Read")
+    def serialize_Date_Read(self, value: date) -> int:
+        return int(datetime.combine(value, time(), tzinfo=timezone.utc).timestamp())
+
 
 class GristReadRecord(GristReadBase):
     id: GristId

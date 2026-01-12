@@ -1,7 +1,5 @@
 from .client import GristClient
 from .models import (
-    GristApiIdResponse,
-    GristApiResponse,
     GristAuthorBase,
     GristAuthorInput,
     GristAuthorRecord,
@@ -19,13 +17,10 @@ from .models import (
     GristSeriesBase,
     GristSeriesInput,
     GristSeriesRecord,
-    GristUpsertRecord,
 )
 
 __all__ = [
     "GristClient",
-    "GristApiIdResponse",
-    "GristApiResponse",
     "GristAuthorBase",
     "GristAuthorInput",
     "GristAuthorRecord",
@@ -43,5 +38,4 @@ __all__ = [
     "GristSeriesBase",
     "GristSeriesInput",
     "GristSeriesRecord",
-    "GristUpsertRecord",
 ]

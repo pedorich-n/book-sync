@@ -1,6 +1,6 @@
 import logging
-from datetime import date
-from typing import List, Optional
+from datetime import date, datetime, timezone
+from typing import Any, Dict, List, Optional
 
 from pygrister.api import GristApi  # type: ignore[import-untyped]
 
@@ -28,32 +28,46 @@ class GristClient:
         self.authors_table_id = "Authors"
         self.series_table_id = "Series"
         self.books_table_id = "Books"
+        self.reads_table_id = "Reads"
 
-    def get_language(self, name: str) -> Optional[GristLanguageRecord]:
+    def get_or_create_language(self, name: str) -> Optional[GristId]:
         try:
+            # Try to get existing language
             filter = {"Name": [name]}
             _, response = self.api.list_records(table_id=self.languages_table_id, filter=filter)
             decoded = [GristLanguageRecord.model_validate(record) for record in response]
-            return decoded[0] if decoded else None
-        except Exception as e:
-            self.logger.error(f"Failed to get language by name {name}: {e}")
-            return None
 
-    def upsert_language(self, name: str) -> Optional[GristLanguageRecord]:
-        try:
+            if decoded:
+                id = decoded[0].id
+                self.logger.debug(f"Found existing language: {name} (ID: {id})")
+                return id
+
+            # Create new language if not found
             input = GristLanguageInput(Name=name)
-            upsert_record = input.to_upsert_record()
-            self.api.add_update_records(
+            _, response = self.api.add_records(
                 table_id=self.languages_table_id,
-                records=[upsert_record.model_dump()],
+                records=[input.model_dump()],
             )
-            return self.get_language(name)
+
+            # Response from add_records should contain the new record IDs
+            if response and len(response) > 0:
+                ret = response[0]
+                self.logger.debug(f"Created new language: {name} (ID: {ret})")
+                return ret
+            else:
+                return None
         except Exception as e:
-            self.logger.error(f"Failed to upsert language {name}: {e}")
+            self.logger.error(f"Failed to get or create language {name}: {e}")
             return None
 
-    def get_author(self, name_primary: Optional[str], name_local: Optional[str]) -> Optional[GristAuthorRecord]:
+    def get_or_create_author(
+        self,
+        name_primary: Optional[str] = None,
+        name_local: Optional[str] = None,
+        name_variants: Optional[str] = None,
+    ) -> Optional[GristId]:
         try:
+            # Try to get existing author
             filter = {}
             if name_primary:
                 filter["Name_Primary"] = [name_primary]
@@ -62,97 +76,65 @@ class GristClient:
 
             _, response = self.api.list_records(table_id=self.authors_table_id, filter=filter)
             decoded = [GristAuthorRecord.model_validate(record) for record in response]
-            return decoded[0] if decoded else None
-        except Exception as e:
-            self.logger.error(f"Failed to get author by primary name {name_primary}: {e}")
-            return None
 
-    def upsert_author(
-        self,
-        name_primary: str,
-        name_local: Optional[str] = None,
-        name_variants: Optional[str] = None,
-    ) -> Optional[GristAuthorRecord]:
-        try:
+            if decoded:
+                id = decoded[0].id
+                self.logger.debug(f"Found existing author: {name_primary}, {name_local} (ID: {id})")
+                return id
+
+            # Create new author if not found
             input = GristAuthorInput(
                 Name_Primary=name_primary,
                 Name_Local=name_local,
                 Name_Variants=name_variants,
             )
-            upsert_record = input.to_upsert_record()
-            self.api.add_update_records(
+            _, response = self.api.add_records(
                 table_id=self.authors_table_id,
-                records=[upsert_record.model_dump()],
+                records=[input.model_dump()],
             )
-            return self.get_author(name_primary=name_primary, name_local=name_local)
+
+            # Response from add_records should contain the new record IDs
+            if response and len(response) > 0:
+                ret = response[0]
+                self.logger.debug(f"Created new author: {name_primary} (ID: {ret})")
+                return ret
+            else:
+                return None
         except Exception as e:
-            self.logger.error(f"Failed to upsert author {name_primary}: {e}")
+            self.logger.error(f"Failed to get or create author {name_primary}: {e}")
             return None
 
-    def get_series(self, name: str) -> Optional[GristSeriesRecord]:
+    def get_or_create_series(self, name: str) -> Optional[GristId]:
         try:
+            # Try to get existing series
             filter = {"Name": [name]}
             _, response = self.api.list_records(table_id=self.series_table_id, filter=filter)
             decoded = [GristSeriesRecord.model_validate(record) for record in response]
-            return decoded[0] if decoded else None
-        except Exception as e:
-            self.logger.error(f"Failed to get series by name {name}: {e}")
-            return None
 
-    def upsert_series(self, name: str) -> Optional[GristSeriesRecord]:
-        try:
+            if decoded:
+                id = decoded[0].id
+                self.logger.debug(f"Found existing series: {name} (ID: {id})")
+                return id
+
+            # Create new series if not found
             input = GristSeriesInput(Name=name)
-            upsert_record = input.to_upsert_record()
-            self.api.add_update_records(
+            _, response = self.api.add_records(
                 table_id=self.series_table_id,
-                records=[upsert_record.model_dump()],
+                records=[input.model_dump()],
             )
-            return self.get_series(name)
+
+            # Response from add_records should contain the new record IDs
+            if response and len(response) > 0:
+                ret = response[0]
+                self.logger.debug(f"Created new series: {name} (ID: {ret})")
+                return ret
+            else:
+                return None
         except Exception as e:
-            self.logger.error(f"Failed to upsert series {name}: {e}")
+            self.logger.error(f"Failed to get or create series {name}: {e}")
             return None
 
-    def get_reads(self, book_id: GristId, date: Optional[date] = None) -> List[GristReadRecord]:
-        try:
-            filter = {"Book": [str(book_id)]}
-            if date:
-                filter["Date"] = [date.isoformat()]
-            _, response = self.api.list_records(table_id="Reads", filter=filter)
-            decoded = [GristReadRecord.model_validate(record) for record in response]
-            return decoded
-        except Exception as e:
-            self.logger.error(f"Failed to get reads for book ID {book_id}: {e}")
-            return []
-
-    def upsert_read(
-        self, book_id: GristId, date: date, book_type: GristBookType, language: Optional[GristId] = None
-    ) -> Optional[GristReadRecord]:
-        try:
-            input = GristReadInput(Book=book_id, Date_Read=date, Language_Read=language, Type=book_type, Rating=None, Note=None)
-            upsert_record = input.to_upsert_record()
-            self.api.add_update_records(
-                table_id="Reads",
-                records=[upsert_record.model_dump()],
-            )
-            reads = self.get_reads(book_id, date)
-            return reads[0] if reads else None
-        except Exception as e:
-            self.logger.error(f"Failed to upsert read for book ID {book_id} on date {date}: {e}")
-            return None
-
-    def get_book(self, title: str, authors: List[GristId]) -> Optional[GristBookRecord]:
-        try:
-            filter = {"Title": [title]}
-            if authors:
-                filter["Authors"] = [str(author) for author in authors]
-            _, response = self.api.list_records(table_id=self.books_table_id, filter=filter)
-            decoded = [GristBookRecord.model_validate(record) for record in response]
-            return decoded[0] if decoded else None
-        except Exception as e:
-            self.logger.error(f"Failed to get book by title {title}: {e}")
-            return None
-
-    def upsert_book(
+    def get_or_create_book(
         self,
         title: str,
         authors: List[GristId],
@@ -162,8 +144,23 @@ class GristClient:
         series: Optional[GristId] = None,
         series_order: Optional[int] = None,
         language_original: Optional[GristId] = None,
-    ) -> Optional[GristBookRecord]:
+    ) -> Optional[GristId]:
         try:
+            # Try to get existing book
+            filter: Dict[str, Any] = {"Title": [title]}
+            if authors:
+                # Yes, double nested array is intentional.
+                # Grist expects each filter entry to be a list of possible values, and Authors is a list itself, hence the nesting.
+                filter["Authors"] = [authors]
+            _, response = self.api.list_records(table_id=self.books_table_id, filter=filter)
+            decoded = [GristBookRecord.model_validate(record) for record in response]
+
+            if decoded:
+                id = decoded[0].id
+                self.logger.debug(f"Found existing book: {title} (ID: {id})")
+                return id
+
+            # Create new book if not found
             input = GristBookInput(
                 Title=title,
                 Language_Original=language_original,
@@ -174,12 +171,54 @@ class GristClient:
                 Series=series,
                 Series_Order=series_order,
             )
-            upsert_record = input.to_upsert_record()
-            self.api.add_update_records(
+            _, response = self.api.add_records(
                 table_id=self.books_table_id,
-                records=[upsert_record.model_dump()],
+                records=[input.model_dump()],
             )
-            return self.get_book(title, authors)
+
+            # Response from add_records should contain the new record IDs
+            if response and len(response) > 0:
+                ret = response[0]
+                self.logger.debug(f"Created new book: {title} (ID: {ret})")
+                return ret
+            else:
+                return None
         except Exception as e:
-            self.logger.error(f"Failed to upsert book {title}: {e}")
+            self.logger.error(f"Failed to get or create book {title}: {e}")
+            return None
+
+    def get_or_create_read(
+        self, book_id: GristId, date: date, book_type: GristBookType, language: Optional[GristId] = None
+    ) -> Optional[GristId]:
+        try:
+            # Try to get existing read
+            filter: Dict[str, Any] = {
+                "Book": [book_id],
+                "Date_Read": [datetime(date.year, date.month, date.day, 0, 0, 0, tzinfo=timezone.utc).timestamp()],
+            }
+            _, response = self.api.list_records(table_id=self.reads_table_id, filter=filter)
+            decoded = [GristReadRecord.model_validate(record) for record in response]
+
+            if decoded:
+                id = decoded[0].id
+                self.logger.debug(f"Found existing read for book ID {book_id} on date {date} (ID: {id})")
+                return id
+
+            # Create new read if not found
+            input = GristReadInput(Book=book_id, Date_Read=date, Language_Read=language, Book_Type=book_type, Rating=None, Note=None)
+
+            _, response = self.api.add_records(
+                table_id=self.reads_table_id,
+                records=[input.model_dump()],
+            )
+
+            # Response from add_records should contain the new record IDs
+            if response and len(response) > 0:
+                ret = response[0]
+                self.logger.debug(f"Created new read for book ID {book_id} on date {date} (ID: {ret})")
+                return ret
+            else:
+                return None
+        except Exception as e:
+            self.logger.error(f"Failed to get or create read for book ID {book_id} on date {date}: {e}")
             return None
