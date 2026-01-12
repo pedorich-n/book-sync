@@ -22,7 +22,7 @@ class AudiobookshelfClient:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.session.close()
         return False
-    
+
     def _make_url(self, path: str) -> str:
         return urljoin(self.base_url.encoded_string(), f"/api/{path.lstrip('/')}")
 
@@ -37,14 +37,13 @@ class AudiobookshelfClient:
             data = self._api_call(f"users/{user_id}")
             return AbsApiUser.model_validate(data)
         except Exception as e:
-            self.logger.error(f"Failed to get user {user_id}: {e}")
+            self.logger.error(f"Failed to get current user: {e}", exc_info=True)
             return None
-        
-    
+
     def get_library_item(self, library_item_id: AbsLibraryItemId) -> Optional[AbsApiLibraryItem]:
         try:
             data = self._api_call(f"items/{library_item_id}")
             return AbsApiLibraryItem.model_validate(data)
         except Exception as e:
-            self.logger.error(f"Failed to get library item {library_item_id}: {e}")
+            self.logger.error(f"Failed to get library item {library_item_id}: {e}", exc_info=True)
             return None

@@ -81,7 +81,7 @@ class GristBookRecord(GristBookBase):
     @classmethod
     def parse_grist_ids(cls, v):
         if isinstance(v, list) and len(v) > 0 and v[0] == "L":
-            return v[1:] 
+            return v[1:]
         return v
 
 
@@ -103,7 +103,6 @@ class GristReadBase(BaseModel):
 
 
 class GristReadInput(GristReadBase):
-
     @field_serializer("Date_Read")
     def serialize_Date_Read(self, value: date) -> int:
         return int(datetime.combine(value, time(), tzinfo=timezone.utc).timestamp())
