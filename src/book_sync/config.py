@@ -6,7 +6,7 @@ from typing import Any, Dict
 from pydantic import HttpUrl, PositiveInt, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from abs_sync.utils import NonEmptyStr
+from book_sync.utils import NonEmptyStr
 
 
 class LogFormat(str, Enum):

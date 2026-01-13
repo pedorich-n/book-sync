@@ -5,11 +5,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
-from abs_sync.audiobookshelf.client import AudiobookshelfClient
-from abs_sync.config import Config, LogFormat, LoggingConfig
-from abs_sync.grist.client import GristClient
-from abs_sync.state import StateData, load_state, save_state
-from abs_sync.sync import sync_audiobooks
+from book_sync.audiobookshelf.client import AudiobookshelfClient
+from book_sync.config import Config, LogFormat, LoggingConfig
+from book_sync.grist.client import GristClient
+from book_sync.state import StateData, load_state, save_state
+from book_sync.sync import sync_audiobooks
 
 logger = logging.getLogger(__name__)
 

@@ -4,7 +4,7 @@ from typing import List, NewType, Optional
 
 from pydantic import BaseModel, PositiveFloat
 
-from abs_sync.utils import NonEmptyList, NonEmptyStr, OptionalNonEmptyStr
+from book_sync.utils import NonEmptyList, NonEmptyStr, OptionalNonEmptyStr
 
 AbsLibraryItemId = NewType("AbsLibraryItemId", str)
 AbsMediaId = NewType("AbsMediaId", str)

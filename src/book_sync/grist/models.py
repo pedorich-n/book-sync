@@ -5,7 +5,7 @@ from typing import Annotated, NewType, Optional
 from annotated_types import IsDigit
 from pydantic import BaseModel, PositiveInt, field_serializer, field_validator
 
-from abs_sync.utils import NonEmptyList, NonEmptyStr, OptionalNonEmptyStr
+from book_sync.utils import NonEmptyList, NonEmptyStr, OptionalNonEmptyStr
 
 GristId = NewType("GristId", int)
 """Type alias for Grist record IDs. To distinguish from other integers"""
