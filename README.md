@@ -10,7 +10,7 @@ Synchronize finished audiobooks from [Audiobookshelf](https://www.audiobookshelf
 
 ## Usage
 
-1. Import the Grist base from `grist/Books Tracker.grist` into your Grist workspace
+1. Import the Grist [base](grist/Books_Tracker.grist) into your Grist workspace
 2. Configure environment variables for Audiobookshelf and Grist API access
 3. Run the sync command to import completed audiobooks:
 
