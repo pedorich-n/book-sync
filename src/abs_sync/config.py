@@ -1,8 +1,9 @@
 import logging
 from enum import Enum, IntEnum
+from pathlib import Path
 from typing import Any, Dict
 
-from pydantic import HttpUrl, SecretStr, field_validator
+from pydantic import HttpUrl, PositiveInt, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from abs_sync.utils import NonEmptyStr
@@ -63,9 +64,14 @@ class GristConfig(BaseSettings):
         }
 
 
+class StateConfig(BaseSettings):
+    file_path: Path
+
 class Config(BaseSettings):
     model_config = SettingsConfigDict(env_nested_delimiter="_", env_nested_max_split=1)
 
     logging: LoggingConfig = LoggingConfig()
     abs: AbsConfig
     grist: GristConfig
+    state: StateConfig
+    default_lookback_minutes: PositiveInt = 60
