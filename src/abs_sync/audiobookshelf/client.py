@@ -4,7 +4,7 @@ from urllib.parse import urljoin
 
 from requests import Session
 
-from src.abs_sync.config import AbsConfig
+from abs_sync.config import AbsConfig
 
 from .models import AbsApiLibraryItem, AbsApiUser, AbsLibraryItemId, AbsUserId
 

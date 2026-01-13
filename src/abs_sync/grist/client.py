@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 
 from pygrister.api import GristApi
 
-from src.abs_sync.config import GristConfig
+from abs_sync.config import GristConfig
 
 from .models import (
     GristAuthorInput,

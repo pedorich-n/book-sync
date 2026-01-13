@@ -2,10 +2,10 @@ import logging
 import sys
 from datetime import datetime, timezone
 
-from src.abs_sync.audiobookshelf.client import AudiobookshelfClient
-from src.abs_sync.config import Config, LogFormat, LoggingConfig
-from src.abs_sync.grist.client import GristClient
-from src.abs_sync.sync import sync_audiobooks
+from abs_sync.audiobookshelf.client import AudiobookshelfClient
+from abs_sync.config import Config, LogFormat, LoggingConfig
+from abs_sync.grist.client import GristClient
+from abs_sync.sync import sync_audiobooks
 
 
 def configure_logging(logging_config: LoggingConfig) -> None:

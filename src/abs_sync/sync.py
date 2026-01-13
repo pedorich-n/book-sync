@@ -2,9 +2,9 @@ import logging
 from datetime import datetime
 from typing import List, Optional
 
-from src.abs_sync.audiobookshelf import AbsApiMediaProgress, AbsUserId, AudiobookshelfClient
-from src.abs_sync.grist import GristBookType, GristClient, GristId
-from src.abs_sync.utils import is_latin_alphabet
+from abs_sync.audiobookshelf import AbsApiMediaProgress, AbsUserId, AudiobookshelfClient
+from abs_sync.grist import GristBookType, GristClient, GristId
+from abs_sync.utils import is_latin_alphabet
 
 logger = logging.getLogger(__name__)
 

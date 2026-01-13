@@ -21,10 +21,10 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-include = ["src"]
+packages = ["src/abs_sync"]
 
 [project.scripts]
-abs-sync = "src.abs_sync.main:main"
+abs-sync = "abs_sync.main:main"
 
 [tool.ruff]
 target-version = "py313"
@@ -36,6 +36,7 @@ extend-select = ["I"]
 
 [tool.mypy]
 python_version = "3.13"
+mypy_path = "src"
 
 [[tool.mypy.overrides]]
 module = "pygrister.*"

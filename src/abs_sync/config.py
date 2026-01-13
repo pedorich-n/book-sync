@@ -1,11 +1,11 @@
 import logging
 from enum import Enum, IntEnum
-from typing import Dict
+from typing import Any, Dict
 
-from pydantic import HttpUrl, SecretStr
+from pydantic import HttpUrl, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from src.abs_sync.utils import NonEmptyStr
+from abs_sync.utils import NonEmptyStr
 
 
 class LogFormat(str, Enum):
@@ -21,20 +21,20 @@ class LogLevel(IntEnum):
     ERROR = logging.ERROR
     CRITICAL = logging.CRITICAL
 
-    @classmethod
-    def _missing_(cls, value: object) -> "LogLevel | None":
-        """Allow creation from string names (case-insensitive)."""
-        if isinstance(value, str):
-            try:
-                return cls[value.upper()]
-            except KeyError:
-                pass
-        return None
-
 
 class LoggingConfig(BaseSettings):
     level: LogLevel = LogLevel.DEBUG
     format: LogFormat = LogFormat.FULL
+
+    @field_validator("level", mode="before")
+    @classmethod
+    def parse_log_level(cls, v: Any) -> LogLevel:
+        if isinstance(v, str):
+            try:
+                return LogLevel[v.upper()]
+            except KeyError:
+                raise ValueError(f"Invalid log level: {v}")
+        return v
 
 
 class AbsConfig(BaseSettings):
