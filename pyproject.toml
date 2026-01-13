@@ -1,7 +1,7 @@
 [project]
 name = "book-sync"
 version = "0.1.0"
-description = "Add your description here"
+description = "Synchronize finished books from Audiobookshelf to Grist"
 requires-python = ">=3.13"
 dependencies = [
     "pydantic>=2.12.5",

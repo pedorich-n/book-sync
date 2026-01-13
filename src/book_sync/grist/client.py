@@ -1,5 +1,5 @@
 import logging
-from datetime import date, datetime, time, timezone
+from datetime import date
 from typing import Any, Dict, List, Optional
 
 from pygrister.api import GristApi
@@ -21,6 +21,7 @@ from .models import (
     GristSeriesInput,
     GristSeriesRecord,
 )
+from .utils import date_to_grist_date
 
 
 class GristClient:
@@ -125,6 +126,9 @@ class GristClient:
         Returns:
             The author record ID if successful, None otherwise
         """
+        if not name_primary and not name_local:
+            raise ValueError("At least one of name_primary or name_local must be provided")
+
         input_data = GristAuthorInput(
             Name_Primary=name_primary,
             Name_Local=name_local,
@@ -243,9 +247,7 @@ class GristClient:
 
         filter_data: Dict[str, Any] = {
             "Book": [book_id],
-            # Even though the field is a "date" and the timezone is not necessarily UTC,
-            # Grist stores dates as UTC timestamps at midnight.
-            "Date_Read": [datetime.combine(date, time(), tzinfo=timezone.utc).timestamp()],
+            "Date_Read": [date_to_grist_date(date)],
         }
 
         return self._get_or_create_record(

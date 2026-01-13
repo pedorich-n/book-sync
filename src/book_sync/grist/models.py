@@ -1,4 +1,4 @@
-from datetime import date, datetime, time, timezone
+from datetime import date
 from enum import Enum
 from typing import Annotated, NewType, Optional
 
@@ -6,6 +6,8 @@ from annotated_types import IsDigit
 from pydantic import BaseModel, PositiveInt, field_serializer, field_validator
 
 from book_sync.utils import NonEmptyList, NonEmptyStr, OptionalNonEmptyStr
+
+from .utils import date_to_grist_date
 
 GristId = NewType("GristId", int)
 """Type alias for Grist record IDs. To distinguish from other integers"""
@@ -111,7 +113,7 @@ class GristReadBase(BaseModel):
 class GristReadInput(GristReadBase):
     @field_serializer("Date_Read")
     def serialize_Date_Read(self, value: date) -> int:
-        return int(datetime.combine(value, time(), tzinfo=timezone.utc).timestamp())
+        return date_to_grist_date(value)
 
 
 class GristReadRecord(GristRecord, GristReadBase):

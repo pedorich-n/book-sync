@@ -67,6 +67,7 @@ class GristConfig(BaseSettings):
 class StateConfig(BaseSettings):
     file_path: Path
 
+
 class Config(BaseSettings):
     model_config = SettingsConfigDict(env_nested_delimiter="_", env_nested_max_split=1)
 

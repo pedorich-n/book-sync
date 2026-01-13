@@ -5,13 +5,14 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
-from book_sync.audiobookshelf.client import AudiobookshelfClient
+from book_sync.audiobookshelf import AudiobookshelfClient
 from book_sync.config import Config, LogFormat, LoggingConfig
-from book_sync.grist.client import GristClient
+from book_sync.grist import GristClient
 from book_sync.state import StateData, load_state, save_state
 from book_sync.sync import sync_audiobooks
 
 logger = logging.getLogger(__name__)
+
 
 def configure_logging(logging_config: LoggingConfig) -> None:
     format_strings = {
@@ -34,7 +35,7 @@ def configure_logging(logging_config: LoggingConfig) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Synchronize finished audiobooks from Audiobookshelf to Grist",
+        description="Synchronize finished books from Audiobookshelf to Grist",
         formatter_class=lambda prog: argparse.ArgumentDefaultsHelpFormatter(prog, max_help_position=30),
     )
     parser.add_argument(
@@ -61,7 +62,7 @@ def determine_sync_start_time(
     2. State file timestamp
     3. Current time - lookback_minutes
     """
-    
+
     if cli_since:
         try:
             timestamp = datetime.fromisoformat(cli_since)

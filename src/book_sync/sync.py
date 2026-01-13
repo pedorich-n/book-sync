@@ -9,6 +9,10 @@ from book_sync.utils import is_latin_alphabet
 logger = logging.getLogger(__name__)
 
 
+class SyncError(Exception):
+    pass
+
+
 def sync_audiobooks(
     abs_client: AudiobookshelfClient,
     abs_user_id: AbsUserId,
@@ -23,8 +27,7 @@ def sync_audiobooks(
     # Step 1: Get user's media progress
     user = abs_client.get_user(abs_user_id)
     if not user:
-        logger.error(f"Failed to get user {abs_user_id}")
-        return
+        raise SyncError(f"Failed to get user {abs_user_id}")
 
     # Step 2: Filter for finished items after the specified datetime
     finished_items = [
@@ -37,11 +40,7 @@ def sync_audiobooks(
 
     # Step 3: Process each finished item
     for progress in finished_items:
-        try:
-            _sync_single_item(abs_client, grist_client, progress)
-        except Exception as e:
-            logger.error(f"Failed to sync item {progress.libraryItemId} ({progress.displayTitle}): {e}", exc_info=True)
-            continue
+        _sync_single_item(abs_client, grist_client, progress)
 
     logger.info("Sync completed")
 
@@ -58,8 +57,7 @@ def _sync_single_item(
 
     library_item = abs_client.get_library_item(progress.libraryItemId)
     if not library_item:
-        logger.error(f"Failed to get library item {progress.libraryItemId}")
-        return
+        raise SyncError(f"Failed to get library item {progress.libraryItemId}")
 
     metadata = library_item.media.metadata
 
@@ -71,7 +69,7 @@ def _sync_single_item(
     if language_id:
         logger.info(f"Upserted language: {metadata.language} (ID: {language_id})")
     else:
-        logger.warning(f"Failed to upsert language: {metadata.language}")
+        raise SyncError(f"Failed to upsert language: {metadata.language}")
 
     # Step 2: Upsert authors
     author_ids: List[GristId] = []
@@ -94,11 +92,10 @@ def _sync_single_item(
             author_ids.append(author_id)
             logger.info(f"Upserted author: {author_name} (ID: {author_id})")
         else:
-            logger.warning(f"Failed to upsert author: {author_name}")
+            raise SyncError(f"Failed to upsert author: {author_name}")
 
     if not author_ids:
-        logger.error(f"No authors available for book: {metadata.title}")
-        return
+        raise SyncError(f"No authors available for book: {metadata.title}")
 
     # Step 3: Upsert series
     series_id: Optional[GristId] = None
@@ -111,7 +108,7 @@ def _sync_single_item(
         if series_id:
             logger.info(f"Upserted series: {first_series.name} (ID: {series_id})")
         else:
-            logger.warning(f"Failed to upsert series: {first_series.name}")
+            raise SyncError(f"Failed to upsert series: {first_series.name}")
 
     # Step 4: Upsert book
     book_id = grist_client.get_or_create_book(
@@ -128,8 +125,7 @@ def _sync_single_item(
     if book_id:
         logger.info(f"Upserted book: {metadata.title} (ID: {book_id})")
     else:
-        logger.warning(f"Failed to upsert book: {metadata.title}")
-        return
+        raise SyncError(f"Failed to upsert book: {metadata.title}")
 
     # Step 5: Upsert read record
     read_date = progress.finishedAt.date()  # type: ignore[union-attr] # If we're here, finishedAt shouldn't be None
@@ -143,4 +139,4 @@ def _sync_single_item(
     if read_id:
         logger.info(f"Upserted read: Book '{metadata.title}' on {read_date} (ID: {read_id})")
     else:
-        logger.warning(f"Failed to upsert read for book: {metadata.title}")
+        raise SyncError(f"Failed to upsert read for book: {metadata.title}")
