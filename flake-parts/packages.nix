@@ -12,7 +12,7 @@
 
         in
         {
-          inherit (uv-workspace) venv book-sync;
+          inherit (uv-workspace) venv book-sync ruff;
         };
     };
 }

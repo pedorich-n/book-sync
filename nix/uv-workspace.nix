@@ -35,9 +35,15 @@ let
       inherit python;
     };
   });
+
+  ruff = pythonSet.ruff.overrideAttrs (old: {
+    meta = old.meta or { } // {
+      mainProgram = "ruff";
+    };
+  });
 in
 {
-  inherit venv python;
+  inherit venv python ruff;
 
   book-sync = mkApplication {
     inherit venv;
