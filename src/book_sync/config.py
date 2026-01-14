@@ -65,6 +65,8 @@ class GristConfig(BaseSettings):
 
 
 class StateConfig(BaseSettings):
+    model_config = SettingsConfigDict(extra="ignore")
+
     file_path: Path
 
 

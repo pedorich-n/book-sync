@@ -79,9 +79,9 @@ in
 
         environment = lib.mkMerge [
           {
-            STATE_FILE_PATH = "$STATE_DIRECTORY/state.json";
-            LOGGING_LEVEL = "INFO";
-            LOGGING_FORMAT = "systemd";
+            STATE_FILE_PATH = lib.mkDefault "/var/lib/book-sync/state.json";
+            LOGGING_LEVEL = lib.mkDefault "INFO";
+            LOGGING_FORMAT = lib.mkDefault "systemd";
           }
           cfg.environment
         ];
