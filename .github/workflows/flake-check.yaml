@@ -10,4 +10,4 @@ jobs:
       - name: Flake Check
         run: |
           git config --global url."https://github.com/".insteadOf "git@github.com:"
-          nix flake check
+          nix flake check ".?submodules=1#"
