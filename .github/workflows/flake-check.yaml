@@ -3,7 +3,6 @@ on: push
 
 jobs:
   nix-flake-check:
-    timeout-minutes: ${{ inputs.timeout-minutes }}
     runs-on: ubuntu-latest
     steps:
       - name: Setup Git rewrite rule
