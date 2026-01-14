@@ -9,5 +9,5 @@ jobs:
         uses: pedorich-n/github-workflows/.github/actions/setup-nix-job@main
       - name: Flake Check
         run: |
-          git config --global url."https://${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "git@github.com:"
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
           nix flake check
