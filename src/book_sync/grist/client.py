@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 from pygrister.api import GristApi
 
 from book_sync.config import GristConfig
+from book_sync.utils import NonEmptyStr, OptionalNonEmptyStr
 
 from .models import (
     GristAuthorInput,
@@ -111,71 +112,69 @@ class GristClient:
 
     def get_or_create_author(
         self,
-        name_primary: Optional[str] = None,
-        name_local: Optional[str] = None,
-        name_variants: Optional[str] = None,
+        name_original: NonEmptyStr,
+        name_reference: OptionalNonEmptyStr = None,
     ) -> Optional[GristId]:
         """
         Get an existing author record or create a new one.
 
         Args:
-            name_primary: The author's primary name (typically in Latin script)
-            name_local: The author's local/native name
-            name_variants: Alternative name spellings
+            name_original: The author's original name (in native script/language)
+            name_reference: The author's reference name (in comfortable for reader script/language)
 
         Returns:
             The author record ID if successful, None otherwise
         """
-        if not name_primary and not name_local:
-            raise ValueError("At least one of name_primary or name_local must be provided")
-
         input_data = GristAuthorInput(
-            Name_Primary=name_primary,
-            Name_Local=name_local,
-            Name_Variants=name_variants,
+            Name_Original=name_original,
+            Name_Reference=name_reference,
         ).model_dump()
 
-        filter_data = {}
-        if name_primary:
-            filter_data["Name_Primary"] = [name_primary]
-        if name_local:
-            filter_data["Name_Local"] = [name_local]
+        filter_data = {"Name_Original": [name_original]}
+        if name_reference:
+            filter_data["Name_Reference"] = [name_reference]
 
         return self._get_or_create_record(
             table_id=self.authors_table_id,
             input_data=input_data,
             filter_data=filter_data,
             record_type=GristAuthorRecord,
-            entity_name=f"author '{name_primary or name_local}'",
+            entity_name=f"author '{name_original} {name_reference if name_reference else ''}'",
         )
 
-    def get_or_create_series(self, name: str) -> Optional[GristId]:
+    def get_or_create_series(
+        self, name_original: NonEmptyStr, name_reference: OptionalNonEmptyStr = None
+    ) -> Optional[GristId]:
         """
         Get an existing series record by name or create a new one.
 
         Args:
-            name: The series name
+            name_original: The series original name (in native script/language)
+            name_reference: The series reference name (in comfortable for reader script/language)
 
         Returns:
             The series record ID if successful, None otherwise
         """
-        input_data = GristSeriesInput(Name=name).model_dump()
-        filter_data = {"Name": [name]}
+        input_data = GristSeriesInput(Name_Original=name_original, Name_Reference=name_reference).model_dump()
+        filter_data = {"Name_Original": [name_original]}
+        if name_reference:
+            filter_data["Name_Reference"] = [name_reference]
+
         return self._get_or_create_record(
             table_id=self.series_table_id,
             input_data=input_data,
             filter_data=filter_data,
             record_type=GristSeriesRecord,
-            entity_name=f"series '{name}'",
+            entity_name=f"series '{name_original} {name_reference if name_reference else ''}'",
         )
 
     def get_or_create_book(
         self,
-        title: str,
+        title_original: NonEmptyStr,
         authors: List[GristId],
+        title_reference: OptionalNonEmptyStr = None,
         isbn: Optional[str] = None,
         asin: Optional[str] = None,
-        title_original: Optional[str] = None,
         series: Optional[GristId] = None,
         series_order: Optional[int] = None,
         language_original: Optional[GristId] = None,
@@ -184,11 +183,11 @@ class GristClient:
         Get an existing book record or create a new one.
 
         Args:
-            title: The book title
+            title_original: The book original title
             authors: List of author record IDs
             isbn: International Standard Book Number
             asin: Amazon Standard Identification Number
-            title_original: Original title if translated
+            title_reference: Reference title if translated
             series: Series record ID if book is part of a series
             series_order: Book's position in the series
             language_original: Original language record ID
@@ -197,17 +196,19 @@ class GristClient:
             The book record ID if successful, None otherwise
         """
         input_data = GristBookInput(
-            Title=title,
+            Title_Original=title_original,
+            Title_Reference=title_reference,
             Language_Original=language_original,
             Authors=authors,
             ISBN=isbn,
             ASIN=asin,
-            Title_Original=title_original,
             Series=series,
             Series_Order=series_order,
         ).model_dump()
 
-        filter_data: Dict[str, Any] = {"Title": [title]}
+        filter_data: Dict[str, Any] = {"Title_Original": [title_original]}
+        if title_reference:
+            filter_data["Title_Reference"] = [title_reference]
         if authors:
             # Double nested array is intentional: Grist expects each filter entry to be a list,
             # and Authors is already a list, hence the nesting.
@@ -218,11 +219,16 @@ class GristClient:
             input_data=input_data,
             filter_data=filter_data,
             record_type=GristBookRecord,
-            entity_name=f"book '{title}'",
+            entity_name=f"book '{title_original} {title_reference if title_reference else ''}'",
         )
 
     def get_or_create_read(
-        self, book_id: GristId, date: date, book_type: GristBookType, language: Optional[GristId] = None
+        self,
+        book_id: GristId,
+        date: date,
+        book_type: GristBookType,
+        title_read: OptionalNonEmptyStr = None,
+        language: Optional[GristId] = None,
     ) -> Optional[GristId]:
         """
         Get an existing read record or create a new one.
@@ -231,6 +237,7 @@ class GristClient:
             book_id: The book record ID
             date: Date when the book was finished
             book_type: Type of book (Audio, Digital, or Paper)
+            title_read: Title as read (if different from original)
             language: Language record ID for the language read in
 
         Returns:
@@ -238,6 +245,7 @@ class GristClient:
         """
         input_data = GristReadInput(
             Book=book_id,
+            Title_Read=title_read,
             Date_Read=date,
             Language_Read=language,
             Book_Type=book_type,
@@ -255,5 +263,5 @@ class GristClient:
             input_data=input_data,
             filter_data=filter_data,
             record_type=GristReadRecord,
-            entity_name=f"read for book ID {book_id} on {date}",
+            entity_name=f"read for book ID {book_id} {title_read if title_read else ''} on {date}",
         )
