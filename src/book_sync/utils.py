@@ -15,3 +15,7 @@ type OptionalNonEmptyStr = Annotated[Optional[str], BeforeValidator(_empty_str_t
 type NonEmptyStr = Annotated[str, MinLen(1)]
 
 type NonEmptyList[T] = Annotated[List[T], MinLen(1)]
+
+
+def construct_log_values(**kwargs: Any) -> str:
+    return ", ".join(f"{key}={value}" for key, value in kwargs.items() if value)

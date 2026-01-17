@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 from pygrister.api import GristApi
 
 from book_sync.config import GristConfig
-from book_sync.utils import NonEmptyStr, OptionalNonEmptyStr
+from book_sync.utils import NonEmptyStr, OptionalNonEmptyStr, construct_log_values
 
 from .models import (
     GristAuthorInput,
@@ -139,7 +139,11 @@ class GristClient:
             input_data=input_data,
             filter_data=filter_data,
             record_type=GristAuthorRecord,
-            entity_name=f"author '{name_original} {name_reference if name_reference else ''}'",
+            entity_name=construct_log_values(
+                entity="author",
+                name_original=name_original,
+                name_reference=name_reference,
+            ),
         )
 
     def get_or_create_series(
@@ -165,7 +169,11 @@ class GristClient:
             input_data=input_data,
             filter_data=filter_data,
             record_type=GristSeriesRecord,
-            entity_name=f"series '{name_original} {name_reference if name_reference else ''}'",
+            entity_name=construct_log_values(
+                entity="series",
+                name_original=name_original,
+                name_reference=name_reference,
+            ),
         )
 
     def get_or_create_book(
@@ -219,7 +227,11 @@ class GristClient:
             input_data=input_data,
             filter_data=filter_data,
             record_type=GristBookRecord,
-            entity_name=f"book '{title_original} {title_reference if title_reference else ''}'",
+            entity_name=construct_log_values(
+                entity="book",
+                title_original=title_original,
+                title_reference=title_reference,
+            ),
         )
 
     def get_or_create_read(
@@ -263,5 +275,10 @@ class GristClient:
             input_data=input_data,
             filter_data=filter_data,
             record_type=GristReadRecord,
-            entity_name=f"read for book ID {book_id} {title_read if title_read else ''} on {date}",
+            entity_name=construct_log_values(
+                entity="read",
+                book_id=book_id,
+                title_read=title_read,
+                date=date,
+            ),
         )
