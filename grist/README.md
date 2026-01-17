@@ -3,12 +3,12 @@
 ```mermaid
 erDiagram
     Authors {
-        string Name_Primary
-        string Name_Local
-        string Name_Variants
+        string Name_Original
+        string Name_Reference
     }
     Books {
         string Title_Original
+        string Title_Reference
         string Title
         refList Authors
         ref Language_Original
@@ -22,6 +22,7 @@ erDiagram
     }
     Reads {
         ref Book
+        string Title_Read
         date Date_Read
         ref Language_Read
         choice Rating
@@ -29,7 +30,8 @@ erDiagram
         string Note
     }
     Series {
-        string Name
+        string Name_Original
+        string Name_Reference
     }
 
     Authors }o--o{ Books : "writes/written by"
