@@ -4,7 +4,6 @@ from typing import List, Optional
 
 from book_sync.audiobookshelf import AbsApiMediaProgress, AbsUserId, AudiobookshelfClient
 from book_sync.grist import GristBookType, GristClient, GristId
-from book_sync.utils import is_latin_alphabet
 
 logger = logging.getLogger(__name__)
 
@@ -75,18 +74,9 @@ def _sync_single_item(
     author_ids: List[GristId] = []
     for abs_author in metadata.authors:
         author_name = abs_author.name
-        is_latin = is_latin_alphabet(author_name)
-        primary_name = None
-        local_name = None
 
-        if is_latin:
-            primary_name = author_name
-        else:
-            local_name = author_name
-
-        author_id = grist_client.get_or_create_author(
-            name_primary=primary_name, name_local=local_name, name_variants=None
-        )
+        # We're going to assume that author's name is in the original language
+        author_id = grist_client.get_or_create_author(name_original=author_name)
 
         if author_id:
             author_ids.append(author_id)
@@ -103,7 +93,9 @@ def _sync_single_item(
     if metadata.series:
         first_series = metadata.series[0]
         series_order = first_series.sequence
-        series_id = grist_client.get_or_create_series(name=first_series.name)
+
+        # We're going to assume that series name is in the original language
+        series_id = grist_client.get_or_create_series(name_original=first_series.name)
 
         if series_id:
             logger.info(f"Upserted series: {first_series.name} (ID: {series_id})")
@@ -111,12 +103,13 @@ def _sync_single_item(
             raise SyncError(f"Failed to upsert series: {first_series.name}")
 
     # Step 4: Upsert book
+    # We're going to assume that book title is in the original language
     book_id = grist_client.get_or_create_book(
-        title=metadata.title,
+        title_original=metadata.title,
         authors=author_ids,
         isbn=metadata.isbn,
         asin=metadata.asin,
-        title_original=None,  # No way to know for sure, so leaving empty
+        title_reference=None,  # No way to know for sure, so leaving empty
         series=series_id,
         series_order=series_order,
         language_original=None,  # No way to know for sure, so leaving empty
@@ -129,10 +122,12 @@ def _sync_single_item(
 
     # Step 5: Upsert read record
     read_date = progress.finishedAt.date()  # type: ignore[union-attr] # If we're here, finishedAt shouldn't be None
+    # We're going to assume that read title is the same as the original title
     read_id = grist_client.get_or_create_read(
         book_id=book_id,
         date=read_date,
         book_type=GristBookType.AUDIO,
+        title_read=None,  # No way to know for sure, so leaving empty
         language=language_id,
     )
 

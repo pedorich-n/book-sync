@@ -36,9 +36,8 @@ class GristLanguageRecord(GristRecord, GristLanguageBase):
 class GristAuthorBase(BaseModel):
     """Base model for Grist author records."""
 
-    Name_Primary: OptionalNonEmptyStr
-    Name_Local: OptionalNonEmptyStr
-    Name_Variants: OptionalNonEmptyStr
+    Name_Original: OptionalNonEmptyStr
+    Name_Reference: OptionalNonEmptyStr
 
 
 class GristAuthorInput(GristAuthorBase):
@@ -52,7 +51,8 @@ class GristAuthorRecord(GristRecord, GristAuthorBase):
 class GristSeriesBase(BaseModel):
     """Base model for Grist series records."""
 
-    Name: NonEmptyStr
+    Name_Original: NonEmptyStr
+    Name_Reference: OptionalNonEmptyStr
 
 
 class GristSeriesInput(GristSeriesBase):
@@ -66,8 +66,8 @@ class GristSeriesRecord(GristRecord, GristSeriesBase):
 class GristBookBase(BaseModel):
     """Base model for Grist book records."""
 
-    Title: NonEmptyStr
-    Title_Original: OptionalNonEmptyStr
+    Title_Original: NonEmptyStr
+    Title_Reference: OptionalNonEmptyStr
     Authors: NonEmptyList[GristId]
     ISBN: OptionalNonEmptyStr
     ASIN: OptionalNonEmptyStr
@@ -103,6 +103,7 @@ class GristReadBase(BaseModel):
     """Base model for Grist read records."""
 
     Book: GristId
+    Title_Read: OptionalNonEmptyStr
     Date_Read: date
     Language_Read: Optional[GristId]
     Rating: Optional[Annotated[str, IsDigit]]  # Rating is represented as a dropdown field in Grist
