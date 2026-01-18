@@ -94,22 +94,26 @@ in
           StateDirectory = "book-sync";
 
           # Hardening
+          NoNewPrivileges = true;
+          MemoryDenyWriteExecute = true;
           AmbientCapabilities = [ ];
           CapabilityBoundingSet = [ ];
           LockPersonality = true;
           PrivateDevices = true;
           PrivateTmp = true;
           PrivateUsers = true;
+          PrivateMounts = true;
           DynamicUser = true;
+          ProtectHome = true;
+          ProtectSystem = "strict";
           ProtectKernelModules = true;
           ProtectKernelTunables = true;
           ProtectKernelLogs = true;
           ProtectControlGroups = true;
+          ProtectClock = true;
           RestrictSUIDSGID = true;
           RestrictNamespaces = true;
-          ProtectClock = true;
-          ProtectSystem = "strict";
-          NoNewPrivileges = true;
+          RestrictRealtime = true;
           RestrictAddressFamilies = [
             "AF_INET"
             "AF_INET6"
