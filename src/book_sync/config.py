@@ -45,10 +45,11 @@ class AbsConfig(BaseSettings):
 
 
 class GristConfig(BaseSettings):
+    # By default Pydantic adds a trailing slash to URLs, `url_preserve_empty_path` prevents this
+    model_config = SettingsConfigDict(extra="ignore", url_preserve_empty_path=True)
+
     # The rest of the fields are loaded by pygrister from the environment
     # See https://pygrister.readthedocs.io/en/latest/conf.html#configuration-keys
-    model_config = SettingsConfigDict(extra="ignore")
-
     token: SecretStr
     base_url: HttpUrl
     doc_id: NonEmptyStr
