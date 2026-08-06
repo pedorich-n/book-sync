@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, NewType, Optional
+from typing import NewType
 
 from pydantic import BaseModel, PositiveFloat
 
@@ -28,7 +28,7 @@ class AbsApiSeries(BaseModel):
 class AbsApiMediaItemMetadata(BaseModel):
     title: NonEmptyStr
     authors: NonEmptyList[AbsApiAuthor]
-    series: List[AbsApiSeries]
+    series: list[AbsApiSeries]
     isbn: OptionalNonEmptyStr
     asin: OptionalNonEmptyStr
     language: OptionalNonEmptyStr
@@ -51,11 +51,11 @@ class AbsApiMediaProgress(BaseModel):
     mediaItemType: AbsApiMediaType
     progress: PositiveFloat
     isFinished: bool
-    finishedAt: Optional[datetime]
+    finishedAt: datetime | None
     displayTitle: NonEmptyStr
 
 
 class AbsApiUser(BaseModel):
     id: AbsUserId
     username: NonEmptyStr
-    mediaProgress: List[AbsApiMediaProgress]
+    mediaProgress: list[AbsApiMediaProgress]

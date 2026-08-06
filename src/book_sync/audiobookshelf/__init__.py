@@ -14,7 +14,6 @@ from .models import (
 )
 
 __all__ = [
-    "AudiobookshelfClient",
     "AbsApiAuthor",
     "AbsApiLibraryItem",
     "AbsApiMediaItem",
@@ -26,4 +25,5 @@ __all__ = [
     "AbsLibraryItemId",
     "AbsMediaId",
     "AbsUserId",
+    "AudiobookshelfClient",
 ]

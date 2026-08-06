@@ -1,9 +1,8 @@
 import argparse
 import logging
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Optional
 
 from book_sync.audiobookshelf import AudiobookshelfClient
 from book_sync.config import Config, LogFormat, LoggingConfig
@@ -50,7 +49,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def determine_sync_start_time(
-    cli_since: Optional[str],
+    cli_since: str | None,
     state_file_path: Path,
     default_lookback_minutes: int,
 ) -> datetime:
@@ -68,8 +67,8 @@ def determine_sync_start_time(
             timestamp = datetime.fromisoformat(cli_since)
             logger.info(f"Using CLI-provided timestamp: {timestamp}")
             return timestamp
-        except ValueError as e:
-            logger.error(f"Invalid --since timestamp format: {e}")
+        except ValueError:
+            logger.exception("Invalid --since timestamp format")
             sys.exit(1)
 
     state = load_state(state_file_path)
@@ -77,7 +76,7 @@ def determine_sync_start_time(
         logger.info(f"Using timestamp from state file: {state.last_sync_at}")
         return state.last_sync_at
 
-    timestamp = datetime.now(timezone.utc) - timedelta(minutes=default_lookback_minutes)
+    timestamp = datetime.now(UTC) - timedelta(minutes=default_lookback_minutes)
     logger.info(f"No previous sync found, using default lookback: {timestamp} ({default_lookback_minutes} minutes)")
     return timestamp
 
@@ -87,7 +86,7 @@ def main():
 
     try:
         config = Config()  # type: ignore[call-arg]
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"Error loading configuration: {e}", file=sys.stderr)
         sys.exit(1)
 
@@ -99,23 +98,22 @@ def main():
         default_lookback_minutes=config.default_lookback_minutes,
     )
 
-    sync_start_time = datetime.now(timezone.utc)
+    sync_start_time = datetime.now(UTC)
 
-    with AudiobookshelfClient(config.abs) as abs_client:
-        with GristClient(config.grist) as grist_client:
-            try:
-                logger.info("Starting synchronization...")
-                sync_audiobooks(
-                    abs_client=abs_client,
-                    abs_user_id=config.abs.user_id,
-                    grist_client=grist_client,
-                    finished_since=finished_since,
-                )
-                logger.info("Synchronization completed successfully")
+    with AudiobookshelfClient(config.abs) as abs_client, GristClient(config.grist) as grist_client:
+        try:
+            logger.info("Starting synchronization...")
+            sync_audiobooks(
+                abs_client=abs_client,
+                abs_user_id=config.abs.user_id,
+                grist_client=grist_client,
+                finished_since=finished_since,
+            )
+            logger.info("Synchronization completed successfully")
 
-                state = StateData(last_sync_at=sync_start_time)
-                save_state(config.state.file_path, state)
+            state = StateData(last_sync_at=sync_start_time)
+            save_state(config.state.file_path, state)
 
-            except Exception as e:
-                logger.error(f"Synchronization failed: {e}", exc_info=True)
-                sys.exit(1)
+        except Exception:
+            logger.exception("Synchronization failed")
+            sys.exit(1)

@@ -1,9 +1,8 @@
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +11,7 @@ class StateData(BaseModel):
     last_sync_at: datetime
 
 
-def load_state(state_file_path: Path) -> Optional[StateData]:
+def load_state(state_file_path: Path) -> StateData | None:
     if not state_file_path.exists():
         logger.debug(f"State file not found: {state_file_path}")
         return None
@@ -22,7 +21,7 @@ def load_state(state_file_path: Path) -> Optional[StateData]:
         logger.info(f"Loaded state: last sync at {state.last_sync_at}")
         return state
 
-    except Exception as e:
+    except ValidationError as e:
         logger.warning(f"Failed to parse state file: {e}")
         return None
 
@@ -37,6 +36,6 @@ def save_state(state_file_path: Path, state: StateData) -> None:
         tmp_file.replace(state_file_path)
         logger.info(f"Saved state: last sync at {state.last_sync_at}")
 
-    except Exception as e:
-        logger.error(f"Failed to save state file: {e}", exc_info=True)
+    except Exception:
+        logger.exception("Failed to save state file")
         raise
