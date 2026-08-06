@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime
-from typing import List, Optional
 
 from book_sync.audiobookshelf import AbsApiMediaProgress, AbsUserId, AudiobookshelfClient
 from book_sync.grist import GristBookType, GristClient, GristId
@@ -61,7 +60,7 @@ def _sync_single_item(
     metadata = library_item.media.metadata
 
     # Step 1: Upsert language
-    language_id: Optional[GristId] = None
+    language_id: GristId | None = None
     if metadata.language:
         language_id = grist_client.get_or_create_language(name=metadata.language)
 
@@ -71,7 +70,7 @@ def _sync_single_item(
         raise SyncError(f"Failed to upsert language: {metadata.language}")
 
     # Step 2: Upsert authors
-    author_ids: List[GristId] = []
+    author_ids: list[GristId] = []
     for abs_author in metadata.authors:
         author_name = abs_author.name
 
@@ -88,8 +87,8 @@ def _sync_single_item(
         raise SyncError(f"No authors available for book: {metadata.title}")
 
     # Step 3: Upsert series
-    series_id: Optional[GristId] = None
-    series_order: Optional[int] = None
+    series_id: GristId | None = None
+    series_order: int | None = None
     if metadata.series:
         first_series = metadata.series[0]
         series_order = first_series.sequence

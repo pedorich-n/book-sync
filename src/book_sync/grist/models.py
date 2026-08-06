@@ -1,6 +1,6 @@
 from datetime import date
 from enum import Enum
-from typing import Annotated, NewType, Optional
+from typing import Annotated, NewType
 
 from annotated_types import IsDigit
 from pydantic import BaseModel, PositiveInt, field_serializer, field_validator
@@ -71,9 +71,9 @@ class GristBookBase(BaseModel):
     Authors: NonEmptyList[GristId]
     ISBN: OptionalNonEmptyStr
     ASIN: OptionalNonEmptyStr
-    Language_Original: Optional[GristId]
-    Series: Optional[GristId]
-    Series_Order: Optional[PositiveInt]
+    Language_Original: GristId | None
+    Series: GristId | None
+    Series_Order: PositiveInt | None
 
 
 class GristBookInput(GristBookBase):
@@ -105,8 +105,8 @@ class GristReadBase(BaseModel):
     Book: GristId
     Title_Read: OptionalNonEmptyStr
     Date_Read: date
-    Language_Read: Optional[GristId]
-    Rating: Optional[Annotated[str, IsDigit]]  # Rating is represented as a dropdown field in Grist
+    Language_Read: GristId | None
+    Rating: Annotated[str, IsDigit] | None  # Rating is represented as a dropdown field in Grist
     Book_Type: GristBookType
     Note: OptionalNonEmptyStr
 

@@ -20,7 +20,6 @@ from .models import (
 )
 
 __all__ = [
-    "GristClient",
     "GristAuthorBase",
     "GristAuthorInput",
     "GristAuthorRecord",
@@ -28,6 +27,7 @@ __all__ = [
     "GristBookInput",
     "GristBookRecord",
     "GristBookType",
+    "GristClient",
     "GristId",
     "GristLanguageBase",
     "GristLanguageInput",

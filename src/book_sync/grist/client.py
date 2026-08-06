@@ -1,6 +1,6 @@
 import logging
 from datetime import date
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pygrister.api import GristApi
 
@@ -48,11 +48,11 @@ class GristClient:
     def _get_or_create_record[R: GristRecord](
         self,
         table_id: str,
-        input_data: Dict[str, Any],
-        filter_data: Dict[str, Any],
+        input_data: dict[str, Any],
+        filter_data: dict[str, Any],
         record_type: type[R],
         entity_name: str,
-    ) -> Optional[GristId]:
+    ) -> GristId | None:
         """
         Generic helper to get an existing record or create a new one.
 
@@ -86,11 +86,11 @@ class GristClient:
             else:
                 self.logger.warning(f"Failed to create {entity_name}: empty response")
                 return None
-        except Exception as e:
-            self.logger.error(f"Failed to get or create {entity_name}: {e}", exc_info=True)
+        except Exception:
+            self.logger.exception(f"Failed to get or create {entity_name}")
             return None
 
-    def get_or_create_language(self, name: str) -> Optional[GristId]:
+    def get_or_create_language(self, name: str) -> GristId | None:
         """
         Get an existing language record by name or create a new one.
 
@@ -114,7 +114,7 @@ class GristClient:
         self,
         name_original: NonEmptyStr,
         name_reference: OptionalNonEmptyStr = None,
-    ) -> Optional[GristId]:
+    ) -> GristId | None:
         """
         Get an existing author record or create a new one.
 
@@ -148,7 +148,7 @@ class GristClient:
 
     def get_or_create_series(
         self, name_original: NonEmptyStr, name_reference: OptionalNonEmptyStr = None
-    ) -> Optional[GristId]:
+    ) -> GristId | None:
         """
         Get an existing series record by name or create a new one.
 
@@ -179,14 +179,14 @@ class GristClient:
     def get_or_create_book(
         self,
         title_original: NonEmptyStr,
-        authors: List[GristId],
+        authors: list[GristId],
         title_reference: OptionalNonEmptyStr = None,
-        isbn: Optional[str] = None,
-        asin: Optional[str] = None,
-        series: Optional[GristId] = None,
-        series_order: Optional[int] = None,
-        language_original: Optional[GristId] = None,
-    ) -> Optional[GristId]:
+        isbn: str | None = None,
+        asin: str | None = None,
+        series: GristId | None = None,
+        series_order: int | None = None,
+        language_original: GristId | None = None,
+    ) -> GristId | None:
         """
         Get an existing book record or create a new one.
 
@@ -214,7 +214,7 @@ class GristClient:
             Series_Order=series_order,
         ).model_dump()
 
-        filter_data: Dict[str, Any] = {"Title_Original": [title_original]}
+        filter_data: dict[str, Any] = {"Title_Original": [title_original]}
         if title_reference:
             filter_data["Title_Reference"] = [title_reference]
         if authors:
@@ -240,8 +240,8 @@ class GristClient:
         date: date,
         book_type: GristBookType,
         title_read: OptionalNonEmptyStr = None,
-        language: Optional[GristId] = None,
-    ) -> Optional[GristId]:
+        language: GristId | None = None,
+    ) -> GristId | None:
         """
         Get an existing read record or create a new one.
 
@@ -265,7 +265,7 @@ class GristClient:
             Note=None,
         ).model_dump()
 
-        filter_data: Dict[str, Any] = {
+        filter_data: dict[str, Any] = {
             "Book": [book_id],
             "Date_Read": [date_to_grist_date(date)],
         }
